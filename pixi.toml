@@ -1,0 +1,51 @@
+
+# Specifies properties for the whole workspace
+[workspace]
+channels = [
+  "https://prefix.dev/conda-forge",
+]
+platforms = ["win-64", "linux-64", "osx-arm64", "osx-64"]
+preview = ["pixi-build"]
+
+[workspace.s3-options]
+# endpoint-url = "https://minio.example.com"
+# region = "us-east-1"
+# force-path-style = true
+
+[tasks]
+fetch = { cmd = "git clone --recurse-submodules https://github.com/jank-lang/jank.git ./jank" }
+config = { cmd = "./bin/configure -GNinja -DCMAKE_BUILD_TYPE=Release", cwd = "jank" }
+build = { cmd = "./bin/compile", cwd = "jank", depends-on = ["config"] }
+install = { cmd = "./bin/install", cwd = "jank", depends-on = ["build"] }
+test = { cmd = "ctest --test-dir ./.pixi/build/", depends-on = ["build"] }
+
+[dependencies]
+boost-check = { git = "https://github.com/wolfv/pixi-build-examples", branch = "main", subdirectory = "boost-check" }
+
+[package.host-dependencies]
+cmake = { version = "3.31.5" }
+git-lfs = { version = "3.6.1" }
+ninja = { version = "1.12.1" }
+
+[package.run-dependencies]
+boost-cpp = { version = "1.85.0" }
+bdw-gc = { version = "8.2.8" }
+libzip = { version = "1.11.2" }
+llvmdev = { version = "19.1.7"}
+llvmi-tools = { version = "19.1.7"}
+openssl = { version = "3.4.1" }
+
+# There can be multiple packages in a workspace
+# In `package` you specify properties specific to the package
+[package]
+name = "jank"
+version = "0.1.0"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.1.*" }
+channels = [
+  "https://prefix.dev/pixi-build-backends",
+  "https://prefix.dev/conda-forge",
+]
+
+

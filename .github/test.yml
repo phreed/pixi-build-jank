@@ -1,0 +1,36 @@
+name: pixi test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test-bot:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up pixi
+        id: set-up-pixi
+        uses: pixi/actions/setup-pixi@master
+
+      - name: Cache Pixi Bundler 
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.set-up-pixi.outputs.gems-path }}
+          key: ${{ matrix.os }}-${{ steps.set-up-pixi.outputs.gems-hash }}
+          restore-keys: ${{ matrix.os }}-pixi-
+
+      - run: pixi install git-lfs && git lfs install && sudo ln -s "$(which git-lfs)" "$(git --exec-path)/git-lfs"
+
+      - run: pixi install jank && pixi run test jank && file "$(pixi --prefix)/bin/jank"
+
+      - name: Upload package as artifact
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixi_${{ matrix.os }}
+          path: '*.pixi.*'

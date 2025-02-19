@@ -1,0 +1,38 @@
+name: pixi publish
+
+on:
+  pull_request_target:
+    types:
+      - labeled
+
+jobs:
+  pr-pull:
+    if: contains(github.event.pull_request.labels.*.name, 'publish')
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Set up pixi
+        uses: pixi/actions/setup-pixi@master
+
+      - name: Set up git
+        uses: pixi/actions/git-user-config@master
+
+      - name: Pull dependencies
+        env:
+          PIXI_GITHUB_API_TOKEN: ${{ github.token }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+        run: pixi run publish 
+
+      - name: Push commits
+        uses: pixi/actions/git-try-push@master
+        with:
+          token: ${{ github.token }}
+          branch: main
+
+      - name: Delete branch
+        if: github.event.pull_request.head.repo.fork == false
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: git push --delete origin "$BRANCH"

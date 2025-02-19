@@ -1,0 +1,39 @@
+[project.s3-options]
+endpoint-url = "https://minio.example.com"
+region = "us-east-1"
+force-path-style = true
+
+# Specifies properties for the whole workspace
+[workspace]
+preview = ["pixi-build"]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["win-64", "linux-64", "osx-arm64", "osx-64"]
+
+# There can be multiple packages in a workspace
+# In `package` you specify properties specific to the package
+[package]
+name =  simple_python"
+version = "0.1.0"
+
+# Here the build system of the package is specified
+# We are using `pixi-build-python` in order to build a Python package
+[package.build]
+backend = { name = "pixi-build-python", version = "0.1.*" }
+channels = [
+  "https://prefix.dev/pixi-build-backends",
+  "https://prefix.dev/conda-forge",
+]
+
+
+# The Python package `simple_python` uses `hatchling` as Python build backend
+[package.host-dependencies]
+hatchling = "*"
+
+# We add our package as dependency to the workspace
+[dependencies]
+simple_python = { path = "." }
+# pixi also support git dependencies
+boost-check = { git = "https://github.com/wolfv/pixi-build-examples", branch = "main", subdirectory = "boost-check" }
+
+[package.run-dependencies]
+rich = ">=13.9.4,<14"
